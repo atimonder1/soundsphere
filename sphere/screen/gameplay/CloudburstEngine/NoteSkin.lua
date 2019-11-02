@@ -184,127 +184,124 @@ end
 --------------------------------
 -- get*X get*Y
 --------------------------------
+
+NoteSkin.getG = function(self, order, dt, note, part, name)
+	local dt = dt * self:getSpeed()
+	local seq = self.data[note.id][part].gc[name]
+	if not seq then print(order, dt, note, part, name) end
+	local sum = 0
+	for i = order, #seq - 1 do
+		local delta = seq[i + 1] * dt ^ (i - order)
+		sum = sum + delta
+	end
+	return sum
+end
+
 NoteSkin.getShortNoteX = function(self, note)
-	local data = self.data[note.id]["Head"]
+	local dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
 	return
-		data.x
-		+ data.fx * self:getSpeed()
-			* (note.startNoteData.timePoint.currentVisualTime - note.engine.currentTime)
-		+ data.ox * self:getNoteWidth(note, "Head")
+		  self:getG(0, dt, note, "Head", "x")
+		+ self:getG(0, dt, note, "Head", "w")
+		* self:getG(0, dt, note, "Head", "ox")
 end
 NoteSkin.getLongNoteHeadX = function(self, note)
-	local data = self.data[note.id]["Head"]
+	local dt = note.engine.currentTime - (note:getFakeVisualStartTime() or note.startNoteData.timePoint.currentVisualTime)
 	return
-		data.x
-		+ data.fx * self:getSpeed()
-			* ((note:getFakeVisualStartTime() or note.startNoteData.timePoint.currentVisualTime) - note.engine.currentTime)
-		+ data.ox * self:getNoteWidth(note, "Head")
+		  self:getG(0, dt, note, "Head", "x")
+		+ self:getG(0, dt, note, "Head", "w")
+		* self:getG(0, dt, note, "Head", "ox")
 end
 NoteSkin.getLongNoteTailX = function(self, note)
-	local dataHead = self.data[note.id]["Head"]
-	local dataTail = self.data[note.id]["Tail"]
+	local dt = note.engine.currentTime - note.endNoteData.timePoint.currentVisualTime
 	return
-		dataHead.x
-		+ dataHead.fx * self:getSpeed()
-			* (note.endNoteData.timePoint.currentVisualTime - note.engine.currentTime)
-		+ dataTail.ox * self:getNoteWidth(note, "Tail")
+		  self:getG(0, dt, note, "Tail", "x")
+		+ self:getG(0, dt, note, "Tail", "w")
+		* self:getG(0, dt, note, "Tail", "ox")
 end
 NoteSkin.getLongNoteBodyX = function(self, note)
-	local dataHead = self.data[note.id]["Head"]
-	local dataBody = self.data[note.id]["Body"]
-	local speedSign = sign(self.speed)
+	local dg = self:getLongNoteHeadX(note) - self:getLongNoteTailX(note)
 	local dt
-	if dataHead.fx * speedSign <= 0 then
-		dt = note.endNoteData.timePoint.currentVisualTime - note.engine.currentTime
+	if dg * sign(self.speed) >= 0 then
+		dt = note.engine.currentTime - note.endNoteData.timePoint.currentVisualTime
 	else
-		dt = (note:getFakeVisualStartTime() or note.startNoteData.timePoint.currentVisualTime) - note.engine.currentTime
+		dt = note.engine.currentTime - (note:getFakeVisualStartTime() or note.startNoteData.timePoint.currentVisualTime)
 	end
-	
 	return
-		dataHead.x
-		+ dataHead.fx * self:getSpeed() * dt
-		+ dataBody.ox * self:getNoteWidth(note, "Head")
+		  self:getG(0, dt, note, "Body", "x")
+		+ self:getG(0, dt, note, "Head", "w")
+		* self:getG(0, dt, note, "Body", "ox")
 end
 NoteSkin.getLineNoteX = function(self, note)
-	local data = self.data[note.id]["Head"]
-	local speedSign = sign(self.speed)
+	local dt1 = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
+	local dt2 = note.engine.currentTime - note.endNoteData.timePoint.currentVisualTime
+	local dg = self:getG(0, dt2, note, "Head", "x") - self:getG(0, dt2, note, "Head", "x")
 	local dt
-	if data.fx * speedSign <= 0 then
-		dt = note.endNoteData.timePoint.currentVisualTime - note.engine.currentTime
+	if dg * sign(self.speed) >= 0 then
+		dt = note.engine.currentTime - note.endNoteData.timePoint.currentVisualTime
 	else
-		dt = note.startNoteData.timePoint.currentVisualTime - note.engine.currentTime
+		dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
 	end
-	
-	return
-		data.x
-		+ data.fx * self:getSpeed() * dt
+	return self:getG(0, dt, note, "Head", "x")
 end
 
 NoteSkin.getShortNoteY = function(self, note)
-	local data = self.data[note.id]["Head"]
+	local dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
 	return
-		data.y
-		+ data.fy * self:getSpeed()
-			* (note.startNoteData.timePoint.currentVisualTime - note.engine.currentTime)
-		+ data.oy * self:getNoteHeight(note, "Head")
+		  self:getG(0, dt, note, "Head", "y")
+		+ self:getG(0, dt, note, "Head", "h")
+		* self:getG(0, dt, note, "Head", "oy")
 end
 NoteSkin.getLongNoteHeadY = function(self, note)
-	local data = self.data[note.id]["Head"]
+	local dt = note.engine.currentTime - (note:getFakeVisualStartTime() or note.startNoteData.timePoint.currentVisualTime)
 	return
-		data.y
-		+ data.fy * self:getSpeed()
-			* ((note:getFakeVisualStartTime() or note.startNoteData.timePoint.currentVisualTime) - note.engine.currentTime)
-		+ data.oy * self:getNoteHeight(note, "Head")
+		  self:getG(0, dt, note, "Head", "y")
+		+ self:getG(0, dt, note, "Head", "h")
+		* self:getG(0, dt, note, "Head", "oy")
 end
 NoteSkin.getLongNoteTailY = function(self, note)
-	local dataHead = self.data[note.id]["Head"]
-	local dataTail = self.data[note.id]["Tail"]
+	local dt = note.engine.currentTime - note.endNoteData.timePoint.currentVisualTime
 	return
-		dataHead.y
-		+ dataHead.fy * self:getSpeed()
-			* (note.endNoteData.timePoint.currentVisualTime - note.engine.currentTime)
-		+ dataTail.oy * self:getNoteHeight(note, "Tail")
+		  self:getG(0, dt, note, "Tail", "y")
+		+ self:getG(0, dt, note, "Tail", "h")
+		* self:getG(0, dt, note, "Tail", "oy")
 end
 NoteSkin.getLongNoteBodyY = function(self, note)
-	local dataHead = self.data[note.id]["Head"]
-	local dataBody = self.data[note.id]["Body"]
-	local speedSign = sign(self.speed)
+	local dg = self:getLongNoteHeadY(note) - self:getLongNoteTailY(note)
 	local dt
-	if dataHead.fy * speedSign <= 0 then
-		dt = note.endNoteData.timePoint.currentVisualTime - note.engine.currentTime
+	if dg * sign(self.speed) >= 0 then
+		dt = note.engine.currentTime - note.endNoteData.timePoint.currentVisualTime
 	else
-		dt = (note:getFakeVisualStartTime() or note.startNoteData.timePoint.currentVisualTime) - note.engine.currentTime
+		dt = note.engine.currentTime - (note:getFakeVisualStartTime() or note.startNoteData.timePoint.currentVisualTime)
 	end
-	
 	return
-		dataHead.y
-		+ dataHead.fy * self:getSpeed() * dt
-		+ dataBody.oy * self:getNoteHeight(note, "Head")
+		  self:getG(0, dt, note, "Body", "y")
+		+ self:getG(0, dt, note, "Head", "h")
+		* self:getG(0, dt, note, "Body", "oy")
 end
 NoteSkin.getLineNoteY = function(self, note)
-	local data = self.data[note.id]["Head"]
-	local speedSign = sign(self.speed)
+	local dt1 = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
+	local dt2 = note.engine.currentTime - note.endNoteData.timePoint.currentVisualTime
+	local dg = self:getG(0, dt2, note, "Head", "y") - self:getG(0, dt2, note, "Head", "y")
 	local dt
-	if data.fy * speedSign <= 0 then
-		dt = note.endNoteData.timePoint.currentVisualTime - note.engine.currentTime
+	if dg * sign(self.speed) >= 0 then
+		dt = note.engine.currentTime - note.endNoteData.timePoint.currentVisualTime
 	else
-		dt = note.startNoteData.timePoint.currentVisualTime - note.engine.currentTime
+		dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
 	end
-	
-	return
-		data.y
-		+ data.fy * self:getSpeed() * dt
+	return self:getG(0, dt, note, "Head", "y")
 end
 
 --------------------------------
 -- get*Width get*Height
 --------------------------------
 NoteSkin.getNoteWidth = function(self, note, part)
-	return self.data[note.id][part].w
+	local dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
+	return self:getG(0, dt, note, part, "w")
 end
 
 NoteSkin.getNoteHeight = function(self, note, part)
-	return self.data[note.id][part].h
+	local dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
+	return self:getG(0, dt, note, part, "h")
 end
 
 --------------------------------
@@ -312,33 +309,39 @@ end
 --------------------------------
 
 NoteSkin.getLineNoteScaledWidth = function(self, note)
-	local data = self.data[note.id]["Head"]
-	local dt = note.startNoteData.timePoint.currentVisualTime - note.endNoteData.timePoint.currentVisualTime
-	return math.max(math.abs(data.fx * self:getSpeed() * dt + data.w), self:getCS(note):x(1))
+	local dt1 = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
+	local dt2 = note.engine.currentTime - note.endNoteData.timePoint.currentVisualTime
+	return math.max(math.abs(
+			  self:getG(0, dt2, note, "Head", "x")
+			- self:getG(0, dt1, note, "Head", "x")
+			+ self:getG(0, dt1, note, "Head", "w")
+		), self:getCS(note):x(1))
 end
 
 NoteSkin.getLineNoteScaledHeight = function(self, note)
-	local data = self.data[note.id]["Head"]
-	local dt = note.startNoteData.timePoint.currentVisualTime - note.endNoteData.timePoint.currentVisualTime
-	return math.max(math.abs(data.fy * self:getSpeed() * dt + data.h), self:getCS(note):y(1))
+	local dt1 = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
+	local dt2 = note.engine.currentTime - note.endNoteData.timePoint.currentVisualTime
+	return math.max(math.abs(
+			  self:getG(0, dt2, note, "Head", "y")
+			- self:getG(0, dt1, note, "Head", "y")
+			+ self:getG(0, dt1, note, "Head", "h")
+		), self:getCS(note):y(1))
 end
 
 --------------------------------
 -- get*ScaleX get*ScaleY
 --------------------------------
 NoteSkin.getNoteScaleX = function(self, note, part)
-	local data = self.data[note.id][part]
 	if part == "Body" then
+		local dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
 		local speedSign = sign(self.speed)
 		return
 			(
 				math.max(
-					self.data[note.id]["Head"].fx *
-					(self:getLongNoteTailX(note) - self:getLongNoteHeadX(note)) *
-					speedSign,
+					(self:getLongNoteHeadX(note) - self:getLongNoteTailX(note)) * speedSign,
 					0
 				)
-				+ data.w
+				+ self:getG(0, dt, note, "Body", "w")
 			) / self:getCS(note):x(self:getNoteImage(note, part):getWidth())
 	end
 	
@@ -346,18 +349,16 @@ NoteSkin.getNoteScaleX = function(self, note, part)
 end
 
 NoteSkin.getNoteScaleY = function(self, note, part)
-	local data = self.data[note.id][part]
 	if part == "Body" then
+		local dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
 		local speedSign = sign(self.speed)
 		return
-			math.abs(
+			(
 				math.max(
-					self.data[note.id]["Head"].fy *
-					(self:getLongNoteTailY(note) - self:getLongNoteHeadY(note)) *
-					speedSign,
+					(self:getLongNoteHeadY(note) - self:getLongNoteTailY(note)) * speedSign,
 					0
 				)
-				+ data.h
+				+ self:getG(0, dt, note, "Body", "h")
 			) / self:getCS(note):y(self:getNoteImage(note, part):getHeight())
 	end
 	
@@ -367,15 +368,12 @@ end
 --------------------------------
 -- will*Draw
 --------------------------------
-NoteSkin.whereWillShortNoteDraw = function(self, note)
-	local shortNoteY = self:getShortNoteY(note)
-	local shortNoteHeight = self:getNoteHeight(note, "Head")
+NoteSkin.whereWillShortNoteDrawX = function(self, note)
 	local shortNoteX = self:getShortNoteX(note)
 	local shortNoteWidth = self:getNoteWidth(note, "Head")
-	
+
 	local cs = self:getCS(note)
-	
-	local x, y
+	local x
 	if (self.allcs:x(cs:X(shortNoteX + shortNoteWidth, true), true) > 0) and (self.allcs:x(cs:X(shortNoteX, true), true) < 1) then
 		x = 0
 	elseif self.allcs:x(cs:X(shortNoteX, true), true) >= 1 then
@@ -383,6 +381,15 @@ NoteSkin.whereWillShortNoteDraw = function(self, note)
 	elseif self.allcs:x(cs:X(shortNoteX + shortNoteWidth, true), true) <= 0 then
 		x = -1
 	end
+
+	return x
+end
+NoteSkin.whereWillShortNoteDrawY = function(self, note)
+	local shortNoteY = self:getShortNoteY(note)
+	local shortNoteHeight = self:getNoteHeight(note, "Head")
+	
+	local cs = self:getCS(note)
+	local y
 	if (self.allcs:y(cs:Y(shortNoteY + shortNoteHeight, true), true) > 0) and (self.allcs:y(cs:Y(shortNoteY, true), true) < 1) then
 		y = 0
 	elseif self.allcs:y(cs:Y(shortNoteY, true), true) >= 1 then
@@ -390,7 +397,12 @@ NoteSkin.whereWillShortNoteDraw = function(self, note)
 	elseif self.allcs:y(cs:Y(shortNoteY + shortNoteHeight, true), true) <= 0 then
 		y = -1
 	end
-	
+
+	return y
+end
+NoteSkin.whereWillShortNoteDraw = function(self, note)
+	local x = self:whereWillShortNoteDrawX(note)
+	local y = self:whereWillShortNoteDrawY(note)
 	return x, y
 end
 NoteSkin.willShortNoteDraw = function(self, note)
@@ -399,30 +411,29 @@ NoteSkin.willShortNoteDraw = function(self, note)
 end
 NoteSkin.willShortNoteDrawBeforeStart = function(self, note)
 	local x, y = self:whereWillShortNoteDraw(note)
-	local data = self.data[note.id]["Head"]
+	local dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
 	local speedSign = sign(self.speed)
-	return data.fx * x * speedSign < 0 or data.fy * y * speedSign < 0
+	return
+		self:getG(1, dt, note, "Head", "x") * x * speedSign > 0 or
+		self:getG(1, dt, note, "Head", "y") * y * speedSign > 0
 end
 NoteSkin.willShortNoteDrawAfterEnd = function(self, note)
 	local x, y = self:whereWillShortNoteDraw(note)
-	local data = self.data[note.id]["Head"]
+	local dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
 	local speedSign = sign(self.speed)
-	return data.fx * x * speedSign > 0 or data.fy * y * speedSign > 0
+	return
+		self:getG(1, dt, note, "Head", "x") * x * speedSign < 0 or
+		self:getG(1, dt, note, "Head", "y") * y * speedSign < 0
 end
 
-NoteSkin.whereWillLongNoteDraw = function(self, note)
+NoteSkin.whereWillLongNoteDrawX = function(self, note)
 	local longNoteHeadX = self:getLongNoteHeadX(note)
-	local longNoteHeadY = self:getLongNoteHeadY(note)
 	local longNoteTailX = self:getLongNoteTailX(note)
-	local longNoteTailY = self:getLongNoteTailY(note)
 	local longNoteHeadWidth = self:getNoteWidth(note, "Head")
-	local longNoteHeadHeight = self:getNoteHeight(note, "Head")
 	local longNoteTailWidth = self:getNoteWidth(note, "Tail")
-	local longNoteTailHeight = self:getNoteHeight(note, "Tail")
 	
 	local cs = self:getCS(note)
-	
-	local x, y
+	local x
 	if
 		(self.allcs:x(cs:X(longNoteHeadX + longNoteHeadWidth, true), true) > 0) and (self.allcs:x(cs:X(longNoteHeadX, true), true) < 1) or
 		(self.allcs:x(cs:X(longNoteTailX + longNoteTailWidth, true), true) > 0) and (self.allcs:x(cs:X(longNoteTailX, true), true) < 1) or
@@ -435,6 +446,16 @@ NoteSkin.whereWillLongNoteDraw = function(self, note)
 		x = -1
 	end
 	
+	return x
+end
+NoteSkin.whereWillLongNoteDrawY = function(self, note)
+	local longNoteHeadY = self:getLongNoteHeadY(note)
+	local longNoteTailY = self:getLongNoteTailY(note)
+	local longNoteHeadHeight = self:getNoteHeight(note, "Head")
+	local longNoteTailHeight = self:getNoteHeight(note, "Tail")
+	
+	local cs = self:getCS(note)
+	local y
 	if
 		(self.allcs:y(cs:Y(longNoteHeadY + longNoteHeadHeight, true), true) > 0) and (self.allcs:y(cs:Y(longNoteHeadY, true), true) < 1) or
 		(self.allcs:y(cs:Y(longNoteTailY + longNoteTailHeight, true), true) > 0) and (self.allcs:y(cs:Y(longNoteTailY, true), true) < 1) or
@@ -447,6 +468,11 @@ NoteSkin.whereWillLongNoteDraw = function(self, note)
 		y = -1
 	end
 	
+	return y
+end
+NoteSkin.whereWillLongNoteDraw = function(self, note)
+	local x = self:whereWillLongNoteDrawX()
+	local y = self:whereWillLongNoteDrawY()
 	return x, y
 end
 NoteSkin.willLongNoteDraw = function(self, note)
@@ -455,27 +481,28 @@ NoteSkin.willLongNoteDraw = function(self, note)
 end
 NoteSkin.willLongNoteDrawBeforeStart = function(self, note)
 	local x, y = self:whereWillLongNoteDraw(note)
-	local data = self.data[note.id]["Head"]
+	local dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
 	local speedSign = sign(self.speed)
-	return data.fx * x * speedSign < 0 or data.fy * y * speedSign < 0
+	return
+		self:getG(1, dt, note, "Head", "x") * x * speedSign > 0 or
+		self:getG(1, dt, note, "Head", "x") * y * speedSign > 0
 end
 NoteSkin.willLongNoteDrawAfterEnd = function(self, note)
 	local x, y = self:whereWillLongNoteDraw(note)
-	local data = self.data[note.id]["Head"]
+	local dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
 	local speedSign = sign(self.speed)
-	return data.fx * x * speedSign > 0 or data.fy * y * speedSign > 0
+	return
+		self:getG(1, dt, note, "Head", "x") * x * speedSign < 0 or
+		self:getG(1, dt, note, "Head", "y") * y * speedSign < 0
 end
 
 
-NoteSkin.whereWillLineNoteDraw = function(self, note)
+NoteSkin.whereWillLineNoteDrawX = function(self, note)
 	local notex = self:getLineNoteX(note)
-	local notey = self:getLineNoteY(note)
 	local width = self:getLineNoteScaledWidth(note)
-	local height = self:getLineNoteScaledHeight(note)
 	
 	local cs = self:getCS(note)
-	
-	local x, y
+	local x
 	if
 		(self.allcs:x(cs:X(notex + width, true), true) > 0) and (self.allcs:x(cs:X(notex, true), true) < 1)
 	then
@@ -485,7 +512,15 @@ NoteSkin.whereWillLineNoteDraw = function(self, note)
 	elseif self.allcs:x(cs:X(notex + width, true), true) <= 0 then
 		x = -1
 	end
+
+	return x
+end
+NoteSkin.whereWillLineNoteDrawY = function(self, note)
+	local notey = self:getLineNoteY(note)
+	local height = self:getLineNoteScaledHeight(note)
 	
+	local cs = self:getCS(note)
+	local y
 	if
 		(self.allcs:y(cs:Y(notey + height, true), true) > 0) and (self.allcs:y(cs:Y(notey, true), true) < 1)
 	then
@@ -495,7 +530,12 @@ NoteSkin.whereWillLineNoteDraw = function(self, note)
 	elseif self.allcs:y(cs:Y(notey + height, true), true) <= 0 then
 		y = -1
 	end
-	
+
+	return y
+end
+NoteSkin.whereWillLineNoteDraw = function(self, note)
+	local x = self:whereWillLineNoteDrawX()
+	local y = self:whereWillLineNoteDrawY()
 	return x, y
 end
 NoteSkin.willLineNoteDraw = function(self, note)
@@ -504,15 +544,19 @@ NoteSkin.willLineNoteDraw = function(self, note)
 end
 NoteSkin.willLineNoteDrawBeforeStart = function(self, note)
 	local x, y = self:whereWillLineNoteDraw(note)
-	local data = self.data[note.id]["Head"]
+	local dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
 	local speedSign = sign(self.speed)
-	return data.fx * x * speedSign < 0 or data.fy * y * speedSign < 0
+	return
+		self:getG(1, dt, note, "Head", "x") * x * speedSign > 0 or
+		self:getG(1, dt, note, "Head", "y") * y * speedSign > 0
 end
 NoteSkin.willLineNoteDrawAfterEnd = function(self, note)
 	local x, y = self:whereWillLineNoteDraw(note)
-	local data = self.data[note.id]["Head"]
+	local dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
 	local speedSign = sign(self.speed)
-	return data.fx * x * speedSign > 0 or data.fy * y * speedSign > 0
+	return
+		self:getG(1, dt, note, "Head", "x") * x * speedSign < 0 or
+		self:getG(1, dt, note, "Head", "y") * y * speedSign < 0
 end
 
 --------------------------------
