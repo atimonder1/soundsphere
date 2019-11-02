@@ -184,7 +184,6 @@ end
 --------------------------------
 -- get*X get*Y
 --------------------------------
-
 NoteSkin.getG = function(self, order, dt, note, part, name)
 	local dt = dt * self:getSpeed()
 	local seq = self.data[note.id][part].gc[name]
@@ -368,6 +367,34 @@ end
 --------------------------------
 -- will*Draw
 --------------------------------
+NoteSkin.whereWillBelongSegment = function(self, note, part, name, value)
+	local seq = self.data[note.id][part].sb[name]
+
+	if not seq then
+		return true
+	end
+	
+	local a, b = seq[1], seq[2]
+	if a < b then
+		if value < a then
+			return -1
+		elseif value > b then
+			return 1
+		else
+			return 0
+		end
+	elseif b < a then
+		if value < b then
+			return -1
+		elseif value > a then
+			return 1
+		else
+			return 0
+		end
+	end
+
+	return 0
+end
 NoteSkin.whereWillShortNoteDrawX = function(self, note)
 	local shortNoteX = self:getShortNoteX(note)
 	local shortNoteWidth = self:getNoteWidth(note, "Head")
@@ -400,30 +427,49 @@ NoteSkin.whereWillShortNoteDrawY = function(self, note)
 
 	return y
 end
+NoteSkin.whereWillShortNoteDrawW = function(self, note)
+	local shortNoteWidth = self:getNoteWidth(note, "Head")
+	return self:whereWillBelongSegment(note, "Head", "w", shortNoteWidth)
+end
+NoteSkin.whereWillShortNoteDrawH = function(self, note)
+	local shortNoteHeight = self:getNoteHeight(note, "Head")
+	return self:whereWillBelongSegment(note, "Head", "h", shortNoteHeight)
+end
+
 NoteSkin.whereWillShortNoteDraw = function(self, note)
 	local x = self:whereWillShortNoteDrawX(note)
 	local y = self:whereWillShortNoteDrawY(note)
-	return x, y
+	local w = self:whereWillShortNoteDrawW(note)
+	local h = self:whereWillShortNoteDrawH(note)
+	return x, y, w, h
 end
 NoteSkin.willShortNoteDraw = function(self, note)
-	local x, y = self:whereWillShortNoteDraw(note)
-	return x == 0 and y == 0
+	local x, y, w, h = self:whereWillShortNoteDraw(note)
+	return
+		x == 0 and
+		y == 0 and
+		w == 0 and
+		h == 0
 end
 NoteSkin.willShortNoteDrawBeforeStart = function(self, note)
-	local x, y = self:whereWillShortNoteDraw(note)
+	local x, y, w, h = self:whereWillShortNoteDraw(note)
 	local dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
 	local speedSign = sign(self.speed)
 	return
 		self:getG(1, dt, note, "Head", "x") * x * speedSign > 0 or
-		self:getG(1, dt, note, "Head", "y") * y * speedSign > 0
+		self:getG(1, dt, note, "Head", "y") * y * speedSign > 0 or
+		self:getG(1, dt, note, "Head", "w") * w * speedSign > 0 or
+		self:getG(1, dt, note, "Head", "h") * h * speedSign > 0
 end
 NoteSkin.willShortNoteDrawAfterEnd = function(self, note)
-	local x, y = self:whereWillShortNoteDraw(note)
+	local x, y, w, h = self:whereWillShortNoteDraw(note)
 	local dt = note.engine.currentTime - note.startNoteData.timePoint.currentVisualTime
 	local speedSign = sign(self.speed)
 	return
 		self:getG(1, dt, note, "Head", "x") * x * speedSign < 0 or
-		self:getG(1, dt, note, "Head", "y") * y * speedSign < 0
+		self:getG(1, dt, note, "Head", "y") * y * speedSign < 0 or
+		self:getG(1, dt, note, "Head", "w") * w * speedSign < 0 or
+		self:getG(1, dt, note, "Head", "h") * h * speedSign < 0
 end
 
 NoteSkin.whereWillLongNoteDrawX = function(self, note)
