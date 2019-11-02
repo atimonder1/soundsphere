@@ -16,6 +16,8 @@ ShortGraphicalNote.update = function(self)
 	else
 		self.drawable.y = self:getY()
 		self.drawable.x = self:getX()
+		self.drawable.sx = self:getScaleX()
+		self.drawable.sy = self:getScaleY()
 		self.drawable:reload()
 		self.drawable.color = self:getColor()
 	end
