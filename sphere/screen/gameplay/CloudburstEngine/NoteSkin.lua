@@ -371,7 +371,7 @@ NoteSkin.whereWillBelongSegment = function(self, note, part, name, value)
 	local seq = self.data[note.id][part].sb[name]
 
 	if not seq then
-		return true
+		return 0
 	end
 	
 	local a, b = seq[1], seq[2]
@@ -517,8 +517,8 @@ NoteSkin.whereWillLongNoteDrawY = function(self, note)
 	return y
 end
 NoteSkin.whereWillLongNoteDraw = function(self, note)
-	local x = self:whereWillLongNoteDrawX()
-	local y = self:whereWillLongNoteDrawY()
+	local x = self:whereWillLongNoteDrawX(note)
+	local y = self:whereWillLongNoteDrawY(note)
 	return x, y
 end
 NoteSkin.willLongNoteDraw = function(self, note)
@@ -580,8 +580,8 @@ NoteSkin.whereWillLineNoteDrawY = function(self, note)
 	return y
 end
 NoteSkin.whereWillLineNoteDraw = function(self, note)
-	local x = self:whereWillLineNoteDrawX()
-	local y = self:whereWillLineNoteDrawY()
+	local x = self:whereWillLineNoteDrawX(note)
+	local y = self:whereWillLineNoteDrawY(note)
 	return x, y
 end
 NoteSkin.willLineNoteDraw = function(self, note)
