@@ -1,6 +1,6 @@
 local Class			= require("aqua.util.Class")
 local Observable	= require("aqua.util.Observable")
-local Autoplay		= require("sphere.screen.gameplay.CloudburstEngine.Autoplay")
+local Autoplay		= require("sphere.screen.gameplay.CloudburstEngine.logics.Autoplay")
 
 local Score = Class:new()
 

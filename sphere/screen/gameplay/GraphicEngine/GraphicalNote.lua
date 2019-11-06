@@ -42,4 +42,8 @@ GraphicalNote.tryNext = function(self)
 	end
 end
 
+GraphicalNote.getG = function(self, ...)
+	return self.noteSkin:getG(...)
+end
+
 return GraphicalNote

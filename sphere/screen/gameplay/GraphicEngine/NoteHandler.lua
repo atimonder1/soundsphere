@@ -1,11 +1,11 @@
 local Class					= require("aqua.util.Class")
-local ShortGraphicalNote	= require("sphere.screen.gameplay.CloudburstEngine.note.ShortGraphicalNote")
-local LongGraphicalNote		= require("sphere.screen.gameplay.CloudburstEngine.note.LongGraphicalNote")
-local LineGraphicalNote		= require("sphere.screen.gameplay.CloudburstEngine.note.LineGraphicalNote")
+local ShortGraphicalNote	= require("sphere.screen.gameplay.CloudburstEngine.graphics.ShortNote")
+local LongGraphicalNote		= require("sphere.screen.gameplay.CloudburstEngine.graphics.LongNote")
+local LineGraphicalNote		= require("sphere.screen.gameplay.CloudburstEngine.graphics.LineNote")
 
-local NoteDrawer = Class:new()
+local NoteHandler = Class:new()
 
-NoteDrawer.load = function(self)
+NoteHandler.load = function(self)
 	self.noteData = {}
 	
 	self.layerData = self.engine.noteChart:requireLayerData(self.layerIndex)
@@ -43,7 +43,7 @@ NoteDrawer.load = function(self)
 				})
 			end
 			if graphicalNote then
-				graphicalNote.noteDrawer = self
+				graphicalNote.noteHandler = self
 				graphicalNote.engine = self.engine
 				graphicalNote.noteSkin = self.engine.noteSkin
 				graphicalNote:init()
@@ -70,7 +70,7 @@ NoteDrawer.load = function(self)
 	self.endNoteIndex = 0
 end
 
-NoteDrawer.updateCurrentTime = function(self)
+NoteHandler.updateCurrentTime = function(self)
 	self.currentTimePoint.absoluteTime = self.engine.currentTime
 	
 	self.currentVelocityData = self.layerData.spaceData:getVelocityData(self.currentVelocityDataIndex)
@@ -88,7 +88,7 @@ NoteDrawer.updateCurrentTime = function(self)
 	self.currentTimePoint:computeZeroClearVisualTime()
 end
 
-NoteDrawer.update = function(self)
+NoteHandler.update = function(self)
 	self:updateCurrentTime()
 	self.globalSpeed = self.currentTimePoint.velocityData.globalSpeed
 	
@@ -130,7 +130,7 @@ NoteDrawer.update = function(self)
 	end
 end
 
-NoteDrawer.unload = function(self)
+NoteHandler.unload = function(self)
 	local note
 	for currentNoteIndex = self.startNoteIndex, self.endNoteIndex do
 		note = self.noteData[currentNoteIndex]
@@ -140,7 +140,7 @@ NoteDrawer.unload = function(self)
 	end
 end
 
-NoteDrawer.reload = function(self)
+NoteHandler.reload = function(self)
 	local note
 	for currentNoteIndex = self.startNoteIndex, self.endNoteIndex do
 		note = self.noteData[currentNoteIndex]
@@ -150,4 +150,4 @@ NoteDrawer.reload = function(self)
 	end
 end
 
-return NoteDrawer
+return NoteHandler

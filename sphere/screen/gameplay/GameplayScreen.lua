@@ -5,10 +5,10 @@ local NotificationLine			= require("sphere.ui.NotificationLine")
 local BackgroundManager			= require("sphere.ui.BackgroundManager")
 local BMSBGA					= require("sphere.screen.gameplay.BMSBGA")
 local CloudburstEngine			= require("sphere.screen.gameplay.CloudburstEngine")
-local NoteSkin					= require("sphere.screen.gameplay.CloudburstEngine.NoteSkin")
 local CustomScore				= require("sphere.screen.gameplay.CustomScore")
 local InputManager				= require("sphere.screen.gameplay.InputManager")
 local ModifierManager			= require("sphere.screen.gameplay.ModifierManager")
+local NoteSkinLoader			= require("sphere.screen.gameplay.NoteSkinLoader")
 local NoteSkinManager			= require("sphere.screen.gameplay.NoteSkinManager")
 local PauseOverlay				= require("sphere.screen.gameplay.PauseOverlay")
 local PlayField					= require("sphere.screen.gameplay.PlayField")
@@ -42,12 +42,8 @@ GameplayScreen.load = function(self)
 
 	InputManager:setInputMode(noteChart.inputMode:getString())
 	
-	local noteSkinData = NoteSkinManager:getNoteSkin(noteChart.inputMode)
-	
-	local noteSkin = NoteSkin:new({
-		directoryPath = noteSkinData.directoryPath,
-		noteSkinData = noteSkinData.noteSkin
-	})
+	local noteSkinMetaData = NoteSkinManager:getNoteSkinList(noteChart.inputMode)[1]
+	local noteSkin = NoteSkinLoader:load(noteSkinMetaData)
 	
 	self.engine.noteChart = noteChart
 	self.engine.noteSkin = noteSkin
@@ -55,9 +51,6 @@ GameplayScreen.load = function(self)
 	self.engine.localAliases = {}
 	self.engine.globalAliases = {}
 	
-	self.playField.directoryPath = noteSkinData.directoryPath
-	self.playField.noteSkinData = noteSkinData.noteSkin
-	self.playField.playFieldData = noteSkinData.playField
 	self.playField.noteSkin = noteSkin
 	self.playField.container = self.container
 	

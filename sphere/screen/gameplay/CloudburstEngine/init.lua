@@ -3,9 +3,9 @@ local AudioContainer	= require("aqua.audio.Container")
 local Class				= require("aqua.util.Class")
 local Observable		= require("aqua.util.Observable")
 local sound				= require("aqua.sound")
-local NoteDrawer		= require("sphere.screen.gameplay.CloudburstEngine.NoteDrawer")
-local NoteHandler		= require("sphere.screen.gameplay.CloudburstEngine.NoteHandler")
-local NoteSkin			= require("sphere.screen.gameplay.CloudburstEngine.NoteSkin")
+local NoteDrawer		= require("sphere.screen.gameplay.CloudburstEngine.graphics.NoteDrawer")
+local GraphicalNoteHandler		= require("sphere.screen.gameplay.CloudburstEngine.graphics.NoteHandler")
+local LogicalNoteHandler		= require("sphere.screen.gameplay.CloudburstEngine.logics.NoteHandler")
 local TimeManager		= require("sphere.screen.gameplay.CloudburstEngine.TimeManager")
 local Config			= require("sphere.config.Config")
 local tween				= require("tween")
@@ -36,8 +36,8 @@ CloudburstEngine.load = function(self)
 	self:loadNoteDrawers()
 	self:loadTimeManager()
 	
-	NoteSkin.speed = Config.data.speed
-	NoteSkin.targetSpeed = Config.data.speed
+	self.noteSkin.speed = Config.data.speed
+	self.noteSkin.targetSpeed = Config.data.speed
 end
 
 CloudburstEngine.update = function(self, dt)
