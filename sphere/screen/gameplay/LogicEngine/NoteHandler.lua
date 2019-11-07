@@ -1,10 +1,8 @@
 local Class				= require("aqua.util.Class")
-local ShortLogicalNote	= require("sphere.screen.gameplay.CloudburstEngine.logics.ShortNote")
-local LongLogicalNote	= require("sphere.screen.gameplay.CloudburstEngine.logics.LongNote")
+local ShortNote	= require("sphere.screen.gameplay.LogicalEngine.ShortNote")
+local LongNote	= require("sphere.screen.gameplay.LogicalEngine.LongNote")
 
 local NoteHandler = Class:new()
-
-NoteHandler.autoplayDelay = 1/15
 
 NoteHandler.loadNoteData = function(self)
 	self.noteData = {}
@@ -18,14 +16,14 @@ NoteHandler.loadNoteData = function(self)
 				local logicalNote
 				
 				if noteData.noteType == "ShortNote" then
-					logicalNote = ShortLogicalNote:new({
+					logicalNote = ShortNote:new({
 						startNoteData = noteData,
 						pressSounds = noteData.sounds,
 						noteType = "ShortNote"
 					})
 					self.engine.noteCount = self.engine.noteCount + 1
 				elseif noteData.noteType == "LongNoteStart" then
-					logicalNote = LongLogicalNote:new({
+					logicalNote = LongNote:new({
 						startNoteData = noteData,
 						endNoteData = noteData.endNoteData,
 						pressSounds = noteData.sounds,
@@ -34,14 +32,14 @@ NoteHandler.loadNoteData = function(self)
 					})
 					self.engine.noteCount = self.engine.noteCount + 1
 				elseif noteData.noteType == "LineNoteStart" then
-					logicalNote = ShortLogicalNote:new({
+					logicalNote = ShorNote:new({
 						startNoteData = noteData,
 						endNoteData = noteData.endNoteData,
 						pressSounds = noteData.sounds,
 						noteType = "SoundNote"
 					})
 				elseif noteData.noteType == "SoundNote" then
-					logicalNote = ShortLogicalNote:new({
+					logicalNote = ShortNote:new({
 						startNoteData = noteData,
 						pressSounds = noteData.sounds,
 						noteType = "SoundNote"
@@ -74,36 +72,24 @@ end
 
 NoteHandler.setKeyState = function(self)
 	self.keyBind = self.inputType .. self.inputIndex
-	self.keyState = love.keyboard.isDown(self.keyBind)
+	self.keyState = false
 end
 
 NoteHandler.update = function(self)
 	if not self.currentNote then return end
-	
-	self.currentNote:update()
-	if self.click then
-		self.keyTimer = self.keyTimer + love.timer.getDelta()
-		if self.keyTimer > self.autoplayDelay then
-			self.click = false
-			self:switchKey(false)
-		end
-	end
+	return self.currentNote:update()
 end
 
 NoteHandler.receive = function(self, event)
 	if not self.currentNote then return end
 	
 	local key = event.args and event.args[1]
-	if self.keyBind and key == self.keyBind then
+	if key == self.keyBind then
 		local currentNote = self.currentNote
 		if event.name == "keypressed" then
-			self.engine:playAudio(currentNote.pressSounds, "fga", currentNote.startNoteData.keysound)
-			
 			self.currentNote.keyState = true
 			return self:switchKey(true)
 		elseif event.name == "keyreleased" then
-			self.engine:playAudio(currentNote.releaseSounds, "fga", currentNote.startNoteData.keysound)
-			
 			self.currentNote.keyState = false
 			return self:switchKey(false)
 		end
@@ -115,17 +101,9 @@ NoteHandler.switchKey = function(self, state)
 	return self:sendState()
 end
 
-NoteHandler.clickKey = function(self)
-	self.keyTimer = 0
-	self.click = true
-	self.keyState = true
-	
-	return self:sendState()
-end
-
 NoteHandler.sendState = function(self)
 	return self.engine.observable:send({
-		name = "noteHandlerUpdated",
+		name = "LogicalNoteHandlerUpdated",
 		noteHandler = self
 	})
 end

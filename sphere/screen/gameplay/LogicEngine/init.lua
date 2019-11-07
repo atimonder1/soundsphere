@@ -1,6 +1,8 @@
+local Class					= require("aqua.util.Class")
+local Observable			= require("aqua.util.Observable")
+local LogicalNoteHandler	= require("sphere.screen.gameplay.CloudburstEngine.logics.NoteHandler")
 
-
-local LogicEngine = {}
+local LogicEngine = Class:new()
 
 LogicEngine.load = function(self)
 	self.observable = Observable:new()
@@ -33,22 +35,11 @@ LogicEngine.receive = function(self, event)
 end
 
 LogicEngine.getNoteHandler = function(self, inputType, inputIndex)
-	if
-		inputType == "key" or
-		inputType == "scratch" or
-		inputType == "measure" or
-		inputType == "bt" or
-		inputType == "fx" or
-		inputType == "laserleft" or
-		inputType == "laserright" or
-		inputType == "auto"
-	then
-		return NoteHandler:new({
-			inputType = inputType,
-			inputIndex = inputIndex,
-			engine = self
-		})
-	end
+	return NoteHandler:new({
+		inputType = inputType,
+		inputIndex = inputIndex,
+		engine = self
+	})
 end
 
 LogicEngine.loadNoteHandlers = function(self)
