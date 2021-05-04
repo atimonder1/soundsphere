@@ -18,7 +18,7 @@ end
 BackgroundManager.loadDrawableBackground = function(self, path)
 	local info = love.filesystem.getInfo(path)
 	if not info or info.type == "directory" then
-		return
+		return self:loadImageBackground("resources/midi/background.jpg")
 	end
 	if path ~= self.currentPath then
 		self.currentPath = path
